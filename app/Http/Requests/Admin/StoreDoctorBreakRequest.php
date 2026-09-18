@@ -38,6 +38,14 @@ class StoreDoctorBreakRequest extends FormRequest
                 return;
             }
 
+            if ($this->date && $this->start_time) {
+                $startDateTime = \Illuminate\Support\Carbon::parse($this->date.' '.$this->start_time);
+                if ($startDateTime->isPast()) {
+                    $validator->errors()->add('start_time', 'The start time must be in the future.');
+                    return;
+                }
+            }
+
             $doctor = $this->route('doctor');
             $doctorId = $doctor instanceof Doctor ? $doctor->id : (int) $doctor;
 

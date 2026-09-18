@@ -104,6 +104,22 @@ class DoctorBreakTest extends TestCase
         $this->assertDatabaseCount('doctor_breaks', 1);
     }
 
+    public function test_past_start_time_on_today_is_rejected(): void
+    {
+        $date = now()->toDateString();
+        $pastStartTime = now()->subHours(2)->format('H:i');
+        $pastEndTime = now()->subHours(1)->format('H:i');
+
+        $response = $this->actingAs($this->admin)->post(route('admin.breaks.store', $this->doctor), [
+            'date' => $date,
+            'start_time' => $pastStartTime,
+            'end_time' => $pastEndTime,
+        ]);
+
+        $response->assertSessionHasErrors('start_time');
+        $this->assertDatabaseCount('doctor_breaks', 0);
+    }
+
     public function test_break_covering_booked_slot_with_equidistant_slots_moves_to_later_slot(): void
     {
         $date = now()->addDays(2)->toDateString();

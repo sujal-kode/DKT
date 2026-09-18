@@ -86,6 +86,23 @@ class AvailabilityManagementTest extends TestCase
         $this->assertDatabaseCount('availabilities', 1);
     }
 
+    public function test_past_start_time_on_today_is_rejected(): void
+    {
+        $date = now()->toDateString();
+        // Pick a time clearly in the past
+        $pastStartTime = now()->subHours(2)->format('H:i');
+        $pastEndTime = now()->subHours(1)->format('H:i');
+
+        $response = $this->actingAs($this->admin)->post(route('admin.availability.store', $this->doctor), [
+            'date' => $date,
+            'start_time' => $pastStartTime,
+            'end_time' => $pastEndTime,
+        ]);
+
+        $response->assertSessionHasErrors('start_time');
+        $this->assertDatabaseCount('availabilities', 0);
+    }
+
     public function test_deleting_an_availability_with_no_booked_appointments_removes_it_and_slots(): void
     {
         $date = now()->addDays(2)->toDateString();
